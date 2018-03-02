@@ -1,11 +1,35 @@
 #!/usr/bin/env node
 const http = require('http')
+const bodyparser = require('body-parser')
+const cors = require('cors')
+const express = require('express')
+const helmet = require('helmet')
+const morgan = require('morgan')
 
-const server = http.createServer((req, res) => {
-  res.writeHead(200, {'Content-Type': 'text/plain'})
-  res.end('Hello World\n')
+const app = express()
+
+const {
+  PORT = 8080,
+  NODE_ENV = 'development',
+} = process.env
+
+app.use(morgan(NODE_ENV === 'development' ? 'dev' : 'combined'))
+app.use(helmet())
+app.use(cors())
+app.use(bodyparser.json())
+app.use(bodyparser.urlencoded())
+
+app.get('/', (req, res) => {
+  res.send('Welcome')
 })
 
-server.listen(8080, 'localhost')
+app.get('/greet/:person?', (req, res) => {
+  const {person = 'world'} = req.params
+  res.send(`Hello, ${person}`)
+})
 
-console.log('Server running at http://localhost:8080/')
+const server = http.createServer(app)
+
+server.listen(PORT, () => 
+  console.log(`Server running at http://localhost:${PORT}/`)
+)
